@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&display=swap');
+:root{--page:#08080d;--panel:#111022;--raised:#1b1630;--line:#4b2b55;--ink:#f3e9db;--muted:#c4a8b7;--orange:#d16a2a;--button:#c45116;--button-ink:#fff2df;--green:#d4a461;--green-bg:#21182a;--green-line:#5a3656;--green-active:#37233f;--field:#0c1020;color-scheme:dark}
+:root[data-theme=light]{color-scheme:dark;--page:#08080d;--panel:#111022;--raised:#1b1630;--line:#4b2b55;--ink:#f3e9db;--muted:#c4a8b7;--orange:#d16a2a;--button:#c45116;--button-ink:#fff2df;--green:#d4a461;--green-bg:#21182a;--green-line:#5a3656;--green-active:#37233f;--field:#0c1020}
+.welcome{position:relative;min-height:100vh;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#3a174f 0%,#10132e 37%,#05060e 78%);isolation:isolate;color:#f1e6da}
+.castle-scene{position:absolute;inset:0;background:linear-gradient(0deg,#03040a 0%,transparent 35%),url('/castle.svg') center 56%/cover no-repeat;opacity:.9;z-index:-3}
+.welcome:before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 65%,#8d3e8d45,transparent 56%),linear-gradient(90deg,#03040cc7,transparent 30%,transparent 70%,#03040cbd);z-index:-2;pointer-events:none}
+.welcome:after{content:'';position:absolute;inset:-15%;background:radial-gradient(ellipse at 35% 65%,#8561a522,transparent 50%),radial-gradient(ellipse at 65% 85%,#74498731,transparent 55%);animation:fog 12s ease-in-out infinite alternate;z-index:-1;pointer-events:none}
+.welcome-content{text-align:center;width:min(95%,900px);padding:48px 15px 35px;position:relative}
+.welcome-kicker{font:600 11px Cinzel,serif;letter-spacing:.42em;color:#e6b8a0;text-shadow:0 2px 8px #000}
+.twilight-title{font:900 clamp(50px,12vw,132px)/1.2 'Cinzel Decorative',Georgia,serif;letter-spacing:.02em;color:#e8bd54;-webkit-text-stroke:clamp(1px,.3vw,4px) #050406;text-shadow:0 5px 0 #050306,0 12px 26px #000,0 0 35px #b8792d7d;animation:titleReveal 3.6s ease-out both;margin:12px 0}
+.welcome-subtitle{font:600 12px Cinzel,serif;letter-spacing:.4em;color:#e0c5c0;margin:8px 0 34px}
+.welcome-panel{background:#080712a8;border:1px solid #95654e75;padding:24px 18px;border-radius:8px;backdrop-filter:blur(8px);max-width:680px;margin:auto;animation:fadeUp .5s ease-out both}
+.welcome-panel h2{font:700 clamp(17px,3vw,24px) Cinzel,serif;color:#e8bd54;letter-spacing:.1em;margin:0 0 20px}
+.welcome-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:13px}
+.gothic-button,.location-option{font:700 13px Cinzel,serif;letter-spacing:.1em;background:linear-gradient(145deg,#180e26,#0c0d1d);color:#f2dfc4;border:1px solid #a95d34;border-radius:4px;min-height:52px;padding:14px 26px;transition:background .2s,border-color .2s,transform .2s}
+.gothic-button:hover,.location-option:not(:disabled):hover{background:#3c1b38;border-color:#e8bd54;transform:translateY(-2px)}
+.gothic-button.main-action{background:linear-gradient(135deg,#753016,#b44e1b);border-color:#d88e3d}
+.back-link{font:600 11px Cinzel,serif;letter-spacing:.14em;color:#dec8ba;background:transparent;border:0;text-decoration:underline;text-underline-offset:5px;padding:12px;cursor:pointer}
+.menu-description{font:13px/1.7 Cinzel,serif;color:#dfc5b6;max-width:480px;margin:16px auto 5px}
+.location-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.location-option{display:grid;gap:8px;text-align:left;letter-spacing:.03em}.location-option small{font:10px Cinzel,serif;color:#e1b89b}.location-option:disabled{opacity:.46;cursor:not-allowed}
+.welcome-footer{display:flex;justify-content:center;gap:18px;margin-top:16px}
+.web-decoration{position:absolute;top:0;width:min(25vw,270px);aspect-ratio:1;background:url('/web.svg') center/contain no-repeat;opacity:.72;pointer-events:none}.web-left{left:0}.web-right{right:0;transform:scaleX(-1)}
+.blood-decoration{position:absolute;width:160px;height:180px;pointer-events:none;opacity:.48;background:radial-gradient(circle at 20% 30%,#790c18 0 8px,transparent 10px),radial-gradient(circle at 55% 50%,#790c18 0 24px,transparent 26px),radial-gradient(circle at 80% 75%,#790c18 0 9px,transparent 11px),linear-gradient(105deg,transparent 38%,#790c18 39% 43%,transparent 44%);filter:blur(1px)}.blood-left{bottom:0;left:0;transform:rotate(30deg)}.blood-right{top:25%;right:0;transform:rotate(160deg)}
+@keyframes titleReveal{from{opacity:0;filter:blur(17px);transform:translateY(24px) scale(.94)}to{opacity:1;filter:blur(0);transform:none}}@keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}@keyframes fog{from{transform:translateX(-5%)}to{transform:translateX(5%)}}
+@media(max-width:600px){.location-grid{grid-template-columns:1fr}.welcome-content{padding-top:85px}.welcome-kicker{letter-spacing:.15em}.welcome-subtitle{letter-spacing:.2em}.web-decoration{width:120px}.gothic-button{padding:12px 17px}.blood-decoration{width:80px}}
+@media(prefers-reduced-motion:reduce){.welcome *, .welcome:after{animation:none!important;transition:none!important}}
+
+.welcome.skip-animation .twilight-title{animation:none}
