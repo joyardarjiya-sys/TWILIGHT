@@ -2,29 +2,102 @@ import http from 'node:http';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
-import { WIDTH, GROUND, CARS, LEVELS } from './public/world.js';
+import {
+  WIDTH,
+  GROUND,
+  CARS,
+  LEVELS,
+  LOCATIONS,
+  DEFAULT_LOCATION
+} from './public/world.js';
 
 const rooms = new Map();
 const membership = new Map();
+// TWILIGHT WEAPON SYSTEM
+
+const WEAPONS = Object.freeze({
+  claws: {
+    name: 'Vampire Claws',
+    price: 0,
+    damage: 1,
+    range: 76,
+    cooldown: 0.46
+  },
+
+  dagger: {
+    name: 'Blood Dagger',
+    price: 100,
+    damage: 1,
+    range: 110,
+    cooldown: 0.42
+  },
+
+  shadow: {
+    name: 'Shadow Blade',
+    price: 250,
+    damage: 1,
+    range: 95,
+    cooldown: 0.25
+  },
+
+  crimson: {
+    name: 'Crimson Sword',
+    price: 500,
+    damage: 2,
+    range: 115,
+    cooldown: 0.48
+  },
+
+  scythe: {
+    name: 'Nightfall Scythe',
+    price: 1000,
+    damage: 2,
+    range: 150,
+    cooldown: 0.65
+  },
+
+  fang: {
+    name: 'Eternal Fang',
+    price: 2000,
+    damage: 3,
+    range: 175,
+    cooldown: 0.35
+  }
+});
 const assets = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
+
   ['/style.css', ['style.css', 'text/css; charset=utf-8']],
   ['/landing.css', ['landing.css', 'text/css; charset=utf-8']],
+
   ['/landing.js', ['landing.js', 'text/javascript; charset=utf-8']],
-  ['/castle.svg', ['castle.svg', 'image/svg+xml']],
-  ['/web.svg', ['web.svg', 'image/svg+xml']],
   ['/game.js', ['game.js', 'text/javascript; charset=utf-8']],
   ['/art.js', ['art.js', 'text/javascript; charset=utf-8']],
   ['/world.js', ['world.js', 'text/javascript; charset=utf-8']],
+
+  // LOCATION ENVIRONMENTS
+  ['/college.js', ['college.js', 'text/javascript; charset=utf-8']],
+  ['/cafe.js', ['cafe.js', 'text/javascript; charset=utf-8']],
+   ['/mall.js', ['mall.js', 'text/javascript; charset=utf-8']],
+
+  ['/castle.svg', ['castle.svg', 'image/svg+xml']],
+  ['/web.svg', ['web.svg', 'image/svg+xml']]
 ]);
 const emptyInput = () => ({left: false, right: false, run: false, attack: false});
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 const own = (object, key) => Object.hasOwn(object, key);
 
-function newRoom(level) {
+function newRoom(level, location = DEFAULT_LOCATION) {
   let code;
   do { code = randomBytes(3).toString('hex').toUpperCase(); } while (rooms.has(code));
-  const room = {code, level, players: new Map(), connections: new Map(), round: 0};
+ const room = {
+  code,
+  level,
+  location,
+  players: new Map(),
+  connections: new Map(),
+  round: 0
+};
   reset(room);
   rooms.set(code, room);
   return room;
@@ -48,8 +121,13 @@ function reset(room) {
 }
 
 function resetPlayer(p, slot, config) {
-  Object.assign(p, {
-    coins: p.coins || 0, rank: p.rank || 1, totalHunts: p.totalHunts || 0,
+  Object.assign(p, {roundStartingCoins: p.coins || 0,
+roundCoinsEarned: 0,
+    coins: p.coins || 0,
+rank: p.rank || 1,
+totalHunts: p.totalHunts || 0,
+inventory: p.inventory || ['claws'],
+equippedWeapon: p.equippedWeapon || 'claws',
     x: 160 + slot * 28, y: GROUND, vy: 0, dir: 1, hp: config.health, ground: true,
     score: 0, swing: 0, cooldown: 0, hurt: 0, pace: 0, jump: false, attackTap: false, input: emptyInput()
   });
@@ -109,19 +187,26 @@ function step(room, dt, now) {
     }
     const attack = input.attack || p.attackTap;
     p.attackTap = false;
-    if (attack && p.cooldown === 0) {
-      p.cooldown = .46;
-      p.swing = .28;
+       if (attack && p.cooldown === 0) {
+  const weapon = WEAPONS[p.equippedWeapon] || WEAPONS.claws;
+
+  p.cooldown = weapon.cooldown;
+  p.swing = Math.min(0.28, weapon.cooldown);
       for (const npc of room.npcs) {
         const distance = (npc.x - p.x) * p.dir;
-        if (!npc.alive || distance < -15 || distance > 76 || GROUND - p.y > 68) continue;
+        if ( !npc.alive || distance < -15 || distance > weapon.range || GROUND - p.y > 68
+) continue;
         npc.hit = .24;
-        if (--npc.hp === 0) {
+        npc.hp = Math.max(0, npc.hp - weapon.damage);
+
+if (npc.hp === 0) {
           npc.alive = false;
           if (!npc.guard) {
             p.score++;
             p.totalHunts = (p.totalHunts || 0) + 1;
-            p.coins = (p.coins || 0) + 10 + Math.floor(Math.random() * 21);
+            const earnedCoins = 10 + Math.floor(Math.random() * 21);
+            p.coins = (p.coins || 0) + earnedCoins;
+            p.roundCoinsEarned = (p.roundCoinsEarned || 0) + earnedCoins;
             p.rank = 1 + Math.floor(p.totalHunts / 10);
             room.score++;
           }
@@ -156,10 +241,42 @@ function step(room, dt, now) {
 }
 
 function state(room) {
-  const {code, level, score, remaining, status, round, npcs} = room;
-  const players = [...room.players.values()].map(({id,name,tint,x,y,dir,hp,score,swing,hurt,pace,ground,coins,rank,totalHunts}) =>
-    ({id,name,tint,x,y,dir,hp,score,swing,hurt,pace,ground,coins,rank,totalHunts}));
-  return {code, level, score, remaining, status, round, players, npcs};
+  const {
+  code,
+  level,
+  location,
+  score,
+  remaining,
+  status,
+  round,
+  npcs
+} = room;
+ const players = [...room.players.values()].map(
+  ({
+    id, name, tint, x, y, dir, hp, score,
+    swing, hurt, pace, ground,
+    coins, rank, totalHunts,
+    inventory, equippedWeapon,
+    roundCoinsEarned, roundStartingCoins
+  }) => ({
+    id, name, tint, x, y, dir, hp, score,
+    swing, hurt, pace, ground,
+    coins, rank, totalHunts,
+    inventory, equippedWeapon,
+    roundCoinsEarned, roundStartingCoins
+  })
+);
+  return {
+  code,
+  level,
+  location,
+  score,
+  remaining,
+  status,
+  round,
+  players,
+  npcs
+};
 }
 
 let last = performance.now();
@@ -213,8 +330,18 @@ const server = http.createServer(async (req, res) => {
       const code = String(data.code ?? '').trim().toUpperCase();
       if (!name) return json(res, 400, {error: 'Give your vampire a name first.'});
       if (code && !rooms.has(code)) return json(res, 404, {error: 'That room has closed or the code is incorrect.'});
-      const level = own(LEVELS, data.level) ? data.level : 'easy';
-      const room = code ? rooms.get(code) : newRoom(level);
+      const level = own(LEVELS, data.level)
+  ? data.level
+  : 'easy';
+
+const location = own(LOCATIONS, data.location)
+  ? data.location
+  : DEFAULT_LOCATION;
+
+// Existing rooms retain the host's location.
+const room = code
+  ? rooms.get(code)
+  : newRoom(level, location);
       if (room.players.size >= 4) return json(res, 409, {error: 'This coven already has four vampires.'});
       const tint = [0, 1, 2, 3].find(value => ![...room.players.values()].some(p => p.tint === value));
       const p = {id: randomUUID(), token: randomUUID(), name, tint, seen: performance.now(), seq: -1};
@@ -223,6 +350,87 @@ const server = http.createServer(async (req, res) => {
       membership.set(p.token, room);
       return json(res, 200, {id: p.id, token: p.token, state: state(room)});
     }
+    // ======================================
+// WEAPON PURCHASE AND EQUIPMENT API
+// ======================================
+
+if (
+  req.method === 'POST' &&
+  (path === '/api/weapon/buy' || path === '/api/weapon/equip')
+) {
+  const data = await body(req);
+
+  const room = membership.get(data.token);
+
+  if (!room) {
+    return json(res, 404, {
+      error: 'Player session expired.'
+    });
+  }
+
+  const player = room.players.get(data.token);
+
+  if (!player) {
+    return json(res, 404, {
+      error: 'Player not found.'
+    });
+  }
+
+  const weaponId = data.weaponId;
+
+  if (
+    typeof weaponId !== 'string' ||
+    !Object.hasOwn(WEAPONS, weaponId)
+  ) {
+    return json(res, 400, {
+      error: 'Invalid weapon.'
+    });
+  }
+
+  const weapon = WEAPONS[weaponId];
+
+  if (path === '/api/weapon/buy') {
+
+    if (player.inventory.includes(weaponId)) {
+      return json(res, 409, {
+        error: 'Weapon already owned.'
+      });
+    }
+
+    if (player.coins < weapon.price) {
+      return json(res, 400, {
+        error: 'Not enough coins.'
+      });
+    }
+
+    player.coins -= weapon.price;
+    player.inventory.push(weaponId);
+
+    return json(res, 200, {
+      success: true,
+      message: `${weapon.name} purchased successfully.`,
+      coins: player.coins,
+      inventory: player.inventory,
+      equippedWeapon: player.equippedWeapon
+    });
+  }
+
+  if (!player.inventory.includes(weaponId)) {
+    return json(res, 403, {
+      error: 'Purchase this weapon first.'
+    });
+  }
+
+  player.equippedWeapon = weaponId;
+
+  return json(res, 200, {
+    success: true,
+    message: `${weapon.name} equipped.`,
+    coins: player.coins,
+    inventory: player.inventory,
+    equippedWeapon: player.equippedWeapon
+  });
+}
     if (path === '/api/events' && req.method === 'GET') {
       const token = url.searchParams.get('token');
       const room = membership.get(token);

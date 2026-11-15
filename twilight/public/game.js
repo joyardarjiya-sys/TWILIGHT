@@ -1,10 +1,35 @@
-import {GROUND, LEVELS} from './world.js';
+import {
+  GROUND,
+  LEVELS,
+  LOCATIONS,
+  DEFAULT_LOCATION
+} from './world.js';
 import {paint, paintPortrait} from './art.js';
 
 const byId = id => document.getElementById(id);
 const setup = byId('setup');
 const lobby = byId('lobby');
 const preferences = byId('preferences');
+// GAME OVER SYSTEM
+const gameOverScreen = byId('gameOverScreen');
+const endGameButton = byId('endGameButton');
+
+let gameOverRound = null;
+// TWILIGHT WEAPON SHOP
+const weaponShop = byId('weaponShop');
+const openWeaponShop = byId('openWeaponShop');
+const closeWeaponShop = byId('closeWeaponShop');
+const shopCoins = byId('shopCoins');
+const shopMessage = byId('shopMessage');
+
+const WEAPONS = {
+  claws: { name: 'Vampire Claws', price: 0 },
+  dagger: { name: 'Blood Dagger', price: 100 },
+  shadow: { name: 'Shadow Blade', price: 250 },
+  crimson: { name: 'Crimson Sword', price: 500 },
+  scythe: { name: 'Nightfall Scythe', price: 1000 },
+  fang: { name: 'Eternal Fang', price: 2000 }
+};
 const controls = [...document.querySelectorAll('[data-control]')];
 const levelInputs = [...setup.querySelectorAll('[name=level]')];
 const world = byId('world');
@@ -31,6 +56,143 @@ let seenRound = 0;
 let lobbySignature = '';
 let actors = new Map();
 let lastFrame = 0;
+// =======================================
+// TWILIGHT - WEAPON SHOP INTERFACE
+// =======================================
+
+
+function getPlayerCoins() {
+  if (!state || !id) return 0;
+
+  const player = state.players?.find(
+    p => p.id === id
+  );
+
+  return Math.max(
+    0,
+    Number(player?.coins) || 0
+  );
+}
+
+function updateWeaponShop() {
+  if (!weaponShop) return;
+  const coins = getPlayerCoins();
+  const player = state?.players?.find(p => p.id === id);
+  const inventory = player?.inventory || ['claws'];
+  const equipped = player?.equippedWeapon || 'claws';
+  shopCoins.textContent = coins;
+  document.querySelectorAll('.weapon-buy').forEach(button => {
+    const weaponId = button.dataset.buy;
+    const weapon = WEAPONS[weaponId];
+    if (!weapon) return;
+    if (!player) {
+      button.textContent = 'JOIN A GAME';
+      button.disabled = true;
+    } else if (equipped === weaponId) {
+      button.textContent = 'EQUIPPED';
+      button.disabled = true;
+    } else if (inventory.includes(weaponId)) {
+      button.textContent = 'EQUIP';
+      button.disabled = false;
+    } else if (coins >= weapon.price) {
+      button.textContent = 'PURCHASE';
+      button.disabled = false;
+    } else {
+      button.textContent = 'INSUFFICIENT COINS';
+      button.disabled = true;
+    }
+  });
+}
+async function handleWeaponAction(weaponId) {
+  const player = state?.players?.find(p => p.id === id);
+  if (!player || !token) {
+    shopMessage.textContent = 'Join a game before purchasing weapons.';
+    return;
+  }
+  const owned = (player.inventory || ['claws']).includes(weaponId);
+  const endpoint = owned ? 'weapon/equip' : 'weapon/buy';
+  shopMessage.textContent = 'Processing...';
+  const buttons = document.querySelectorAll('.weapon-buy');
+  buttons.forEach(button => button.disabled = true);
+  try {
+    const result = await post(endpoint, { token, weaponId });
+    shopMessage.textContent = result.message;
+    // Reflect the server-confirmed purchase immediately; SSE will refresh it too.
+    const current = state?.players?.find(p => p.id === id);
+    if (current) {
+      current.coins = result.coins;
+      current.inventory = result.inventory;
+      current.equippedWeapon = result.equippedWeapon;
+      updateCoinDisplays(current.coins);
+    }
+  } catch (error) {
+    shopMessage.textContent = error.message || 'Weapon action failed.';
+  } finally {
+    updateWeaponShop();
+  }
+}
+
+// Always-visible coin balance in the top-right corner.
+const coinBadge = document.createElement('div');
+coinBadge.id = 'twilightCoinBadge';
+coinBadge.setAttribute('aria-label', 'Current coins');
+coinBadge.innerHTML = '<span aria-hidden="true">🪙</span> <strong id="twilightCoinCount">0</strong>';
+document.body.appendChild(coinBadge);
+const coinBadgeStyle = document.createElement('style');
+coinBadgeStyle.textContent = `
+  #twilightCoinBadge {
+    position: fixed; top: 14px; right: 16px; z-index: 1000;
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 16px; border: 1px solid #d8a947;
+    border-radius: 999px; background: rgba(19, 12, 28, .94);
+    color: #ffd978; font: 700 17px system-ui, sans-serif;
+    box-shadow: 0 0 18px rgba(218, 159, 52, .3);
+    pointer-events: none;
+  }
+`;
+document.head.appendChild(coinBadgeStyle);
+function updateCoinDisplays(coins) {
+  const amount = Math.max(0, Number(coins) || 0);
+  byId('twilightCoinCount').textContent = amount.toLocaleString();
+  if (byId('coins')) byId('coins').textContent = amount;
+  if (weaponShop?.open) updateWeaponShop();
+}
+
+function showWeaponShop() {
+  if (!weaponShop || weaponShop.open) return;
+
+  updateWeaponShop();
+
+  shopMessage.textContent = state ? 'Choose a weapon to purchase or equip.' : 'Join a game to purchase weapons.';
+
+  clearInput();
+  weaponShop.showModal();
+}
+
+function hideWeaponShop() {
+  if (!weaponShop || !weaponShop.open) return;
+
+  weaponShop.close();
+}
+
+openWeaponShop.addEventListener('click', showWeaponShop);
+document.querySelectorAll('.weapon-buy').forEach(button => {
+  button.addEventListener('click', () => {
+    const weaponId = button.dataset.buy;
+
+    if (!WEAPONS[weaponId]) return;
+
+    handleWeaponAction(weaponId);
+  });
+});
+
+closeWeaponShop.addEventListener('click', hideWeaponShop);
+
+weaponShop.addEventListener('close', () => {
+  if (id) {
+    world.focus({ preventScroll: true });
+  }
+});
 
 function storage(key, value) {
   try {
@@ -40,7 +202,6 @@ function storage(key, value) {
     // Play remains available if storage is restricted.
   }
 }
-
 function theme(mode) {
   document.documentElement.dataset.theme = mode;
   byId('dark').setAttribute('aria-pressed', String(mode === 'dark'));
@@ -58,6 +219,11 @@ if (/^[0-9A-F]{6}$/.test(inviteCode || '')) {
 
 function selected() {
   return setup.querySelector('[name=level]:checked').value;
+}
+function selectedLocation() {
+  return setup.querySelector(
+    '[name="location"]:checked'
+  )?.value || 'streets';
 }
 function previewLevel() {
   const level = selected();
@@ -99,7 +265,12 @@ async function join(code = '') {
   byId('setupNotice').textContent = '';
   byId('start').disabled = byId('join').disabled = true;
   try {
-    const result = await post('join',{name,code,level:selected()});
+    const result = await post('join', {
+  name,
+  code,
+  level: selected(),
+  location: selectedLocation()
+});
     id = result.id;
     token = result.token;
     seenRound = 0;
@@ -131,7 +302,7 @@ byId('join').addEventListener('click', () => {
   if (!code) {
     byId('setupNotice').textContent = 'Enter a room code or use Begin the hunt to make one.';
     byId('joinCode').focus();
-    return;
+        return;
   }
   join(code);
 });
@@ -148,6 +319,9 @@ function exit(message = '', notify = true) {
   stream?.close();
   stream = null;
   state = null;
+  updateCoinDisplays(0);
+  gameOverScreen.hidden = true;
+  gameOverRound = null;
   actors = new Map();
   clearInput();
   setup.hidden = false;
@@ -161,6 +335,44 @@ function exit(message = '', notify = true) {
 }
 
 byId('leave').addEventListener('click', () => exit());
+// EXIT GAME AFTER THE MATCH ENDS
+endGameButton.addEventListener('click', () => {
+  gameOverScreen.hidden = true;
+  gameOverRound = null;
+
+  exit('The night has ended. Your final rewards have been recorded.');
+});
+// TWILIGHT - PLAY A NEW GAME
+
+const playAgainButton = byId('playAgainButton');
+
+playAgainButton.addEventListener('click', async () => {
+  if (!token || !state) return;
+
+  playAgainButton.disabled = true;
+  playAgainButton.textContent = 'STARTING NEW HUNT...';
+
+  try {
+    await post('restart', { token });
+
+    gameOverScreen.hidden = true;
+    gameOverRound = null;
+
+    clearInput();
+
+    byId('lobbyNotice').textContent =
+      'A new hunt has begun!';
+
+    world.focus({ preventScroll: true });
+
+  } catch (error) {
+    byId('lobbyNotice').textContent =
+      error.message || 'Unable to restart the game.';
+  } finally {
+    playAgainButton.disabled = false;
+    playAgainButton.textContent = '🦇 PLAY A NEW GAME';
+  }
+});
 window.addEventListener('pagehide', () => {
   if (id) navigator.sendBeacon('/api/leave',JSON.stringify({token}));
 });
@@ -197,14 +409,19 @@ function update(next) {
     actors = new Map();
     clearInput();
   }
-  byId('district').textContent = config.title;
+  const currentLocation =
+  LOCATIONS[next.location] ||
+  LOCATIONS[DEFAULT_LOCATION];
+
+byId('district').textContent = currentLocation.name;
   byId('roundStats').hidden = byId('health').hidden = false;
   byId('sceneCaption').hidden = true;
   byId('score').textContent = next.score + ' / ' + config.goal;
   const seconds = Math.ceil(next.remaining);
   byId('timer').textContent = String(Math.floor(seconds/60)).padStart(2,'0') + ':' + String(seconds%60).padStart(2,'0');
   byId('rank').textContent = me.rank || 1;
-  byId('coins').textContent = me.coins || 0;
+  updateCoinDisplays(getPlayerCoins());
+updateWeaponShop();
   byId('lifeName').textContent = me.name;
   byId('lifeValue').textContent = me.hp + ' HP';
   byId('lifeBar').max = config.health;
@@ -222,11 +439,33 @@ function update(next) {
       name.textContent = (p.id === id ? '◆ ' : '◇ ') + p.name + (p.id === id ? ' · you' : '');
       score.textContent = p.hp ? p.score + ' prey' : 'Fallen';
       row.append(name,score);
-      return row;
+            return row;
     });
     byId('players').replaceChildren(...entries);
   }
   const ended = next.status !== 'playing';
+  // Display the final results once per completed round
+if (ended && gameOverRound !== next.round) {
+  gameOverRound = next.round;
+
+  byId('finalHunts').textContent = me.score || 0;
+  byId('finalEarnedCoins').textContent = me.roundCoinsEarned || 0;
+  byId('finalTotalCoins').textContent = me.coins || 0;
+  byId('finalLevel').textContent = me.rank || 1;
+
+  clearInput();
+
+  if (weaponShop?.open) {
+    weaponShop.close();
+  }
+
+  gameOverScreen.hidden = false;
+}
+
+// Hide the Game Over screen when a new round starts
+if (!ended) {
+  gameOverScreen.hidden = true;
+}
   byId('result').hidden = !ended && me.hp > 0;
   byId('restart').hidden = !ended;
   if (ended) {
@@ -246,7 +485,7 @@ function markControls() {
 }
 
 async function sendInput() {
-  if (!id || !state) return;
+  if (!id || !state || state.status !== 'playing') return;
   if (sending) { sendAgain = true; return; }
   sending = true;
   const player = id;
@@ -295,7 +534,7 @@ controls.forEach(button => {
     setInput('pointer'+event.pointerId,button.dataset.control,true);
   });
   for (const eventName of ['pointerup','pointercancel','lostpointercapture']) {
-    button.addEventListener(eventName,event => setInput('pointer'+event.pointerId,button.dataset.control,false));
+        button.addEventListener(eventName,event => setInput('pointer'+event.pointerId,button.dataset.control,false));
   }
   button.addEventListener('click',event => {
     if (!id || event.detail !== 0) return;
@@ -312,34 +551,52 @@ window.addEventListener('keydown',event => {
   event.preventDefault();
   if (!event.repeat) setInput(event.code,action,true);
 });
+
 window.addEventListener('keyup',event => {
   if (keyboard.has(event.code)) setInput(event.code,keyboard.get(event.code),false);
 });
+
 window.addEventListener('blur',clearInput);
+
 document.addEventListener('visibilitychange',() => {
   if (document.hidden) clearInput();
 });
+
 setInterval(sendInput,155);
 
 function render(timestamp) {
   const delta = Math.min(60,timestamp-lastFrame);
   lastFrame = timestamp;
   const blend = 1-Math.exp(-delta/43);
+
   const soften = (actor,key) => {
     const previous = actors.get(key);
     const pos = {...actor};
+
     if (previous) {
       pos.x = previous.x+(actor.x-previous.x)*blend;
       if ('y' in actor) pos.y = previous.y+(actor.y-previous.y)*blend;
     }
+
     actors.set(key,pos);
     return pos;
   };
+
   const view = state ? {
     players:state.players.map(p => soften(p,p.id)),
     npcs:state.npcs.map(n => soften(n,n.id))
   } : preview;
-  paint(world,view,id,document.documentElement.dataset.theme === 'light',timestamp/1000);
+
+  view.location = state?.location || 'streets';
+
+  paint(
+    world,
+    view,
+    id,
+    document.documentElement.dataset.theme === 'light',
+    timestamp/1000
+  );
+
   requestAnimationFrame(render);
 }
 

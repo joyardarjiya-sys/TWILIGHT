@@ -106,3 +106,520 @@ dialog::backdrop{background:#100b0acf}
 @media(max-width:880px){.shell{width:calc(100% - 28px)}.dashboard{grid-template-columns:minmax(0,1fr) 267px;gap:10px}.side{padding:13px}.keyboard{display:none}}
 @media(max-width:675px){.shell{width:calc(100% - 20px);padding-top:12px}.masthead{margin-bottom:12px}.brand svg{width:39px}.brand{gap:6px}.dashboard{grid-template-columns:1fr}.scene{height:clamp(310px,49svh,480px)}.scene-top,.scene-bottom,.health{left:12px;right:12px}.scene-top{top:12px}.controls button{width:clamp(46px,13vw,64px);height:48px}.side{padding:13px}.scene-bottom{bottom:12px}.scene-bottom,.scene-bottom span:first-child{font-size:8px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+/* =========================================
+   TWILIGHT 2.0 — VAMPIRE WEAPON SHOP
+   ========================================= */
+
+/* Weapon Shop Access Button */
+
+.shop-access {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 100;
+}
+
+.shop-trigger {
+    background: linear-gradient(135deg, #31004B, #08080D);
+    color: #E8BD54;
+    border: 2px solid #C45116;
+    padding: 14px 28px;
+    font-family: Georgia, serif;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.shop-trigger:hover {
+    background: #C45116;
+    color: #08080D;
+    box-shadow: 0 0 20px rgba(196, 81, 22, 0.6);
+    transform: translateY(-3px);
+}
+
+/* Main Shop Window */
+
+.weapon-shop {
+    width: min(950px, 92vw);
+    max-height: 85vh;
+    padding: 30px;
+    background: linear-gradient(
+        145deg,
+        #08080D,
+        #080F29,
+        #31004B
+    );
+    color: #E8BD54;
+    border: 2px solid #790C18;
+    border-radius: 12px;
+    box-shadow: 0 0 45px rgba(49, 0, 75, 0.8);
+    overflow-y: auto;
+}
+
+.weapon-shop::backdrop {
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(6px);
+}
+
+/* Shop Header */
+
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    border-bottom: 1px solid #790C18;
+    padding-bottom: 20px;
+}
+
+.shop-header h2 {
+    font-family: Georgia, serif;
+    font-size: 34px;
+    letter-spacing: 4px;
+    color: #E8BD54;
+    text-shadow: 2px 2px 0 #000;
+    margin: 10px 0;
+}
+
+.shop-subtitle {
+    color: #C45116;
+    font-size: 12px;
+    letter-spacing: 4px;
+}
+
+.shop-header p {
+    color: #B8A8C8;
+}
+
+/* Close Button */
+
+.shop-close {
+    background: #790C18;
+    color: white;
+    border: 1px solid #C45116;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.shop-close:hover {
+    background: #C45116;
+}
+
+/* Coin Balance */
+
+.shop-balance {
+    margin: 25px 0;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid #C45116;
+    border-radius: 6px;
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+
+.shop-balance strong {
+    color: #E8BD54;
+    font-size: 22px;
+    margin-left: 10px;
+}
+
+/* Weapon Grid */
+
+.weapon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+/* Weapon Cards */
+
+.weapon-card {
+    background: linear-gradient(
+        160deg,
+        #151020,
+        #08080D
+    );
+    border: 1px solid #4B205F;
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.weapon-card:hover {
+    border-color: #C45116;
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(121, 12, 24, 0.4);
+}
+
+.weapon-card h3 {
+    color: #E8BD54;
+    font-family: Georgia, serif;
+    font-size: 21px;
+    margin-bottom: 12px;
+}
+
+.weapon-card p {
+    color: #B8A8C8;
+    font-size: 14px;
+    min-height: 42px;
+    line-height: 1.5;
+}
+
+/* Weapon Price */
+
+.weapon-price {
+    display: block;
+    color: #C45116;
+    font-weight: bold;
+    font-size: 15px;
+    margin: 18px 0;
+}
+
+/* Purchase Buttons */
+
+.weapon-buy {
+    width: 100%;
+    background: linear-gradient(
+        135deg,
+        #790C18,
+        #31004B
+    );
+    color: #FFFFFF;
+    border: 1px solid #C45116;
+    border-radius: 5px;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.weapon-buy:hover {
+    background: #C45116;
+    color: #08080D;
+}
+
+.weapon-buy:disabled {
+    background: #24202A;
+    color: #888;
+    border-color: #444;
+    cursor: not-allowed;
+}
+
+/* Purchase Messages */
+
+.shop-message {
+    margin-top: 22px;
+    text-align: center;
+    color: #E8BD54;
+    font-size: 15px;
+    letter-spacing: 1px;
+    min-height: 24px;
+}
+
+/* Responsive Design */
+
+@media (max-width: 800px) {
+    .weapon-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .shop-header h2 {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 500px) {
+    .weapon-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .weapon-shop {
+        padding: 18px;
+    }
+
+    .shop-header h2 {
+        font-size: 22px;
+    }
+
+    .shop-access {
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .shop-trigger {
+        padding: 12px 18px;
+        font-size: 12px;
+    }
+}
+/* TWILIGHT WEAPON SHOP — VISUAL UPGRADE */
+
+.weapon-shop {
+    border: 1px solid #44245e;
+    background: linear-gradient(145deg, #08080d, #080f29, #210b35);
+}
+
+.shop-header {
+    border-bottom: 1px solid #44245e;
+}
+
+.shop-balance {
+    border: 1px solid #44245e;
+}
+
+.weapon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #44245e;
+    background: linear-gradient(160deg, #171020, #08080d);
+}
+
+.weapon-card:hover {
+    border-color: #76518f;
+}
+
+.weapon-image {
+    display: block;
+    width: 100%;
+    max-width: 180px;
+    height: 155px;
+    object-fit: contain;
+    margin: 0 auto 16px;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.7));
+}
+
+.weapon-card h3 {
+    margin: 0 0 12px;
+    text-align: center;
+    color: #e8bd54;
+}
+
+.weapon-card .weapon-buy {
+    margin-top: auto;
+}
+
+.shop-close,
+.weapon-buy,
+.shop-trigger {
+    border-color: #76518f;
+}
+
+.shop-close:hover,
+.weapon-buy:hover,
+.shop-trigger:hover {
+    border-color: #c45116;
+}
+/* ==================================
+   TWILIGHT GAME OVER SCREEN
+================================== */
+
+.game-over-screen[hidden] {
+    display: none !important;
+}
+
+.game-over-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(3, 2, 10, 0.94);
+    backdrop-filter: blur(12px);
+}
+
+.game-over-panel {
+    width: min(90%, 650px);
+    padding: 45px;
+
+    text-align: center;
+
+    background: linear-gradient(
+        145deg,
+        #08080f,
+        #190b2b,
+        #090c1c
+    );
+
+    border: 1px solid #594071;
+    border-radius: 12px;
+
+    box-shadow:
+        0 0 60px rgba(70, 20, 110, 0.3);
+}
+
+.game-over-subtitle {
+    color: #b8a3c9;
+    letter-spacing: 5px;
+    font-size: 12px;
+}
+
+.game-over-panel h1 {
+    font-family: Georgia, serif;
+    font-size: clamp(40px, 7vw, 70px);
+    color: #d7b46a;
+    letter-spacing: 6px;
+    margin: 15px 0;
+}
+
+.game-over-message {
+    color: #aaa0b6;
+    margin-bottom: 30px;
+}
+
+.game-results {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.result-card {
+    padding: 20px;
+    background: #100d1d;
+    border: 1px solid #403052;
+    border-radius: 8px;
+}
+
+.result-card span {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #a89ab8;
+}
+
+.result-card strong {
+    display: block;
+    margin-top: 12px;
+    font-size: 30px;
+    color: #e8bd54;
+}
+
+#endGameButton {
+    width: 100%;
+    padding: 16px;
+
+    background: linear-gradient(
+        90deg,
+        #33204f,
+        #5a3479
+    );
+
+    border: 1px solid #76518f;
+    border-radius: 6px;
+
+    color: #f1dfb3;
+    font-size: 15px;
+    letter-spacing: 3px;
+
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#endGameButton:hover {
+    background: #704398;
+    box-shadow: 0 0 25px rgba(112, 67, 152, 0.4);
+}
+
+@media (max-width: 500px) {
+    .game-over-panel {
+        padding: 25px;
+    }
+
+    .game-results {
+        gap: 10px;
+    }
+
+    .result-card {
+        padding: 12px;
+    }
+}
+/* ========================================
+   TWILIGHT — LOCATION SELECTION
+======================================== */
+
+.location-selection {
+  margin: 30px 0;
+  padding: 25px;
+  background: linear-gradient(145deg, #150f20, #25152f);
+  border: 1px solid #6d477f;
+  border-radius: 12px;
+}
+
+.location-selection h2 {
+  font-family: Georgia, serif;
+  color: #e7c58a;
+  letter-spacing: 2px;
+  text-align: center;
+  font-size: 22px;
+}
+
+.location-subtitle {
+  color: #bda9c9;
+  text-align: center;
+  font-size: 13px;
+  margin-bottom: 25px;
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.location-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #61406f;
+  border-radius: 10px;
+  background: #1b1424;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.location-card:hover {
+  border-color: #b779dd;
+  box-shadow: 0 0 18px #8c4ec244;
+  transform: translateY(-3px);
+}
+
+.location-card:has(input:checked) {
+  border-color: #d2a6f1;
+  background: #30203d;
+  box-shadow: 0 0 20px #9b55d555;
+}
+
+.location-card input {
+  accent-color: #a967db;
+}
+
+.location-name {
+  color: #e6c28b;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.location-description {
+  color: #b9a7c5;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
+}

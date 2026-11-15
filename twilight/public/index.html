@@ -38,14 +38,55 @@
         <p id="roleNotice" class="menu-description" aria-live="polite"></p>
         <button type="button" class="back-link" data-back="mode">BACK</button>
       </div>
-      <div id="welcomeLocation" class="welcome-panel" hidden>
-        <h2>CHOOSE YOUR LOCATION</h2>
-        <div class="location-grid">
-          <button type="button" class="location-option" data-location="streets"><b>RAVENWOOD STREETS</b><small>PLAYABLE NOW · BLACKTHORN</small></button>
-          <button type="button" class="location-option" disabled><b>BLACKWOOD COLLEGE</b><small>COMING IN A FUTURE UPDATE</small></button>
-          <button type="button" class="location-option" disabled><b>MOONLIGHT CAFÉ</b><small>COMING IN A FUTURE UPDATE</small></button>
-          <button type="button" class="location-option" disabled><b>SHADOWFALL MALL</b><small>COMING IN A FUTURE UPDATE</small></button>
-        </div>
+      
+        <div id="welcomeLocation" class="welcome-panel" hidden>
+
+  <h2>CHOOSE YOUR LOCATION</h2>
+
+  <div class="location-grid" style="display: none;"></div>
+
+    <button
+      type="button"
+      class="location-option"
+      data-location="streets">
+      <b>HOLLOW STREETS</b>
+      <small>VINTAGE STREETS AND DARK ALLEYS</small>
+    </button>
+
+    <button
+      type="button"
+      class="location-option"
+      data-location="college">
+      <b>BLACKTHORN COLLEGE</b>
+      <small>HAUNTED GOTHIC UNIVERSITY</small>
+    </button>
+
+    <button
+      type="button"
+      class="location-option"
+      data-location="cafe">
+      <b>MIDNIGHT CAFÉ</b>
+      <small>VICTORIAN CAFÉ AFTER DARK</small>
+    </button>
+
+    <button
+      type="button"
+      class="location-option"
+      data-location="mall">
+      <b>RAVENCREST MALL</b>
+      <small>ABANDONED SHOPPING COMPLEX</small>
+    </button>
+
+  </div>
+
+  <button
+    type="button"
+    class="back-link"
+    data-back="role">
+    BACK
+  </button>
+
+</div>
         <button type="button" class="back-link" data-back="role">BACK</button>
       </div>
       <div id="welcomeReady" class="welcome-panel" hidden>
@@ -114,6 +155,56 @@
               <span class="ring"><i>◈</i> Daylight ring equipped</span></div>
           </div>
           <fieldset>
+            <!-- TWILIGHT LOCATION SELECTION -->
+<section class="location-selection">
+
+  <h2>CHOOSE YOUR HUNTING GROUND</h2>
+
+  <p class="location-subtitle">
+    Every place has its secrets. Choose where the night begins.
+  </p>
+
+  <div class="location-grid">
+
+    <label class="location-card">
+      <input type="radio" name="location" value="college">
+
+      <span class="location-name">BLACKTHORN COLLEGE</span>
+      <span class="location-description">
+        An ancient university hiding dark secrets.
+      </span>
+    </label>
+
+    <label class="location-card">
+      <input type="radio" name="location" value="streets" checked>
+
+      <span class="location-name">HOLLOW STREETS</span>
+      <span class="location-description">
+        Abandoned roads beneath the eternal moon.
+      </span>
+    </label>
+
+    <label class="location-card">
+      <input type="radio" name="location" value="cafe">
+
+      <span class="location-name">MIDNIGHT CAFÉ</span>
+      <span class="location-description">
+        A Victorian café where no visitor feels safe.
+      </span>
+    </label>
+
+    <label class="location-card">
+      <input type="radio" name="location" value="mall">
+
+      <span class="location-name">RAVENCREST MALL</span>
+      <span class="location-description">
+        A deserted shopping complex after midnight.
+      </span>
+    </label>
+
+  </div>
+
+</section>
             <legend>SELECT DIFFICULTY</legend>
             <div class="levels">
               <label class="level"><input type="radio" name="level" value="easy" checked><span class="dot"></span><span><b>Easy</b><small>Gaslight Lane</small></span><span class="bars">▮</span></label>
@@ -141,6 +232,141 @@
 
     <footer><span><i></i> BLACKTHORN, AFTER DARK</span><span>CO-OP · 1–4 PLAYERS</span></footer>
   </main>
+  <!-- TWILIGHT WEAPON SHOP -->
+<div class="shop-access" id="shopAccess">
+  <button type="button" id="openWeaponShop" class="shop-trigger">
+    WEAPON SHOP
+  </button>
+</div>
+
+<dialog id="weaponShop" class="weapon-shop">
+
+  <div class="shop-header">
+    <div>
+      <p class="shop-subtitle">THE BLACK MARKET</p>
+      <h2>VAMPIRE ARSENAL</h2>
+      <p>Power belongs to those who hunt.</p>
+    </div>
+
+    <button type="button" id="closeWeaponShop" class="shop-close">
+      CLOSE
+    </button>
+  </div>
+
+  <div class="shop-balance">
+    AVAILABLE COINS:
+    <strong id="shopCoins">0</strong>
+  </div>
+
+  <div class="weapon-grid">
+
+    <div class="weapon-card" data-weapon="claws">
+      <h3>Vampire Claws</h3>
+      <p>Basic vampire attack.</p>
+      <span class="weapon-price">FREE</span>
+      <button type="button" class="weapon-buy" data-buy="claws">
+        EQUIP
+      </button>
+    </div>
+
+    <div class="weapon-card" data-weapon="dagger">
+      <h3>Blood Dagger</h3>
+      <p>Increases attack range.</p>
+      <span class="weapon-price">100 COINS</span>
+      <button type="button" class="weapon-buy" data-buy="dagger">
+        PURCHASE
+      </button>
+    </div>
+
+    <div class="weapon-card" data-weapon="shadow">
+      <h3>Shadow Blade</h3>
+      <p>Increases attack speed.</p>
+      <span class="weapon-price">250 COINS</span>
+      <button type="button" class="weapon-buy" data-buy="shadow">
+        PURCHASE
+      </button>
+    </div>
+
+    <div class="weapon-card" data-weapon="crimson">
+      <h3>Crimson Sword</h3>
+      <p>Deals increased damage.</p>
+      <span class="weapon-price">500 COINS</span>
+      <button type="button" class="weapon-buy" data-buy="crimson">
+        PURCHASE
+      </button>
+    </div>
+
+    <div class="weapon-card" data-weapon="scythe">
+      <h3>Nightfall Scythe</h3>
+      <p>Unleashes a powerful area attack.</p>
+      <span class="weapon-price">1000 COINS</span>
+      <button type="button" class="weapon-buy" data-buy="scythe">
+        PURCHASE
+      </button>
+    </div>
+
+    <div class="weapon-card" data-weapon="fang">
+      <h3>Eternal Fang</h3>
+      <p>An ancient supernatural weapon.</p>
+      <span class="weapon-price">2000 COINS</span>
+      <button type="button" class="weapon-buy" data-buy="fang">
+        PURCHASE
+      </button>
+    </div>
+
+  </div>
+
+  <p id="shopMessage" class="shop-message" role="status"></p>
+
+</dialog>
+<!-- TWILIGHT GAME OVER SCREEN -->
+
+<div id="gameOverScreen" class="game-over-screen" hidden>
+  <button id="playAgainButton" type="button">
+  🦇 PLAY A NEW GAME
+</button>
+
+  <div class="game-over-panel">
+
+    <p class="game-over-subtitle">THE NIGHT HAS ENDED</p>
+
+    <h1>GAME OVER</h1>
+
+    <p class="game-over-message">
+      Every hunt leaves a legacy.
+    </p>
+
+    <div class="game-results">
+
+      <div class="result-card">
+        <span>HUMANS HUNTED</span>
+        <strong id="finalHunts">0</strong>
+      </div>
+
+      <div class="result-card">
+        <span>COINS EARNED</span>
+        <strong id="finalEarnedCoins">0</strong>
+      </div>
+
+      <div class="result-card">
+        <span>TOTAL COINS</span>
+        <strong id="finalTotalCoins">0</strong>
+      </div>
+
+      <div class="result-card">
+        <span>VAMPIRE LEVEL</span>
+        <strong id="finalLevel">1</strong>
+      </div>
+
+    </div>
+
+    <button id="endGameButton" type="button">
+      END GAME
+    </button>
+
+  </div>
+
+</div>
 
   <dialog id="preferences">
     <form method="dialog">

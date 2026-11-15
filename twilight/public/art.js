@@ -1,4 +1,7 @@
-import {WIDTH, GROUND, CARS} from './world.js';
+import { WIDTH, GROUND, CARS } from './world.js';
+import { collegeLayer } from './college.js';
+import { cafeLayer } from './cafe.js';
+import { mallLayer } from './mall.js';
 
 const H = 590;
 const palette = ['#862e36','#56406c','#235c62','#925223'];
@@ -225,7 +228,137 @@ function face(c) {
   path(c,'M-5 -70l3 1 -1 3ZM5 -70l3 -1 -2 4Z','#fff3d9');
   path(c,'M-8 -75l3 2m13 -4 3 -2',null,'#f1c5ad',.75);
 }
+// ========================================
+// TWILIGHT — WEAPON VISUAL EFFECTS
+// ========================================
 
+function drawWeapon(c, weaponId, attacking, t) {
+  const weapon = weaponId || 'claws';
+
+  c.save();
+
+  c.lineCap = 'round';
+  c.lineJoin = 'round';
+
+  if (attacking) {
+    c.shadowBlur = 18;
+  }
+
+  switch (weapon) {
+
+    case 'claws': {
+      c.strokeStyle = '#d92345';
+      c.shadowColor = '#ff244d';
+      c.lineWidth = 2.5;
+
+      for (let i = 0; i < 3; i++) {
+        c.beginPath();
+        c.moveTo(i * 4, 0);
+        c.quadraticCurveTo(
+          i * 4 + 9,
+          -8,
+          i * 4 + 17,
+          -20
+        );
+        c.stroke();
+      }
+      break;
+    }
+
+    case 'dagger': {
+      c.shadowColor = '#ff2348';
+
+      c.fillStyle = '#65313b';
+      c.fillRect(-3, -3, 6, 15);
+
+      c.fillStyle = '#e33b54';
+      c.beginPath();
+      c.moveTo(-5, -3);
+      c.lineTo(0, -38);
+      c.lineTo(5, -3);
+      c.closePath();
+      c.fill();
+
+      break;
+    }
+
+    case 'shadow': {
+      c.shadowColor = '#a34dff';
+
+      c.fillStyle = '#3c245e';
+      c.fillRect(-4, -3, 8, 16);
+
+      c.fillStyle = '#9855ef';
+      c.beginPath();
+      c.moveTo(-6, -4);
+      c.lineTo(0, -52);
+      c.lineTo(6, -4);
+      c.closePath();
+      c.fill();
+
+      break;
+    }
+
+    case 'crimson': {
+      c.shadowColor = '#ff304f';
+
+      c.fillStyle = '#532a36';
+      c.fillRect(-4, -2, 8, 17);
+
+      c.fillStyle = '#dc2443';
+      c.beginPath();
+      c.moveTo(-8, -3);
+      c.lineTo(0, -65);
+      c.lineTo(8, -3);
+      c.closePath();
+      c.fill();
+
+      break;
+    }
+
+    case 'scythe': {
+      c.shadowColor = '#b56cff';
+
+      c.strokeStyle = '#6f527b';
+      c.lineWidth = 5;
+
+      c.beginPath();
+      c.moveTo(0, 12);
+      c.lineTo(0, -67);
+      c.stroke();
+
+      c.fillStyle = '#a965e8';
+      c.beginPath();
+      c.moveTo(0, -67);
+      c.quadraticCurveTo(44, -84, 51, -35);
+      c.quadraticCurveTo(35, -57, 0, -55);
+      c.closePath();
+      c.fill();
+
+      break;
+    }
+
+    case 'fang': {
+      c.shadowColor = '#ffd36d';
+      c.shadowBlur = 20;
+
+      c.fillStyle = '#75582b';
+      c.fillRect(-4, -2, 8, 17);
+
+      c.fillStyle = '#ffd66e';
+      c.beginPath();
+      c.moveTo(-8, -4);
+      c.lineTo(0, -72);
+      c.lineTo(8, -4);
+      c.closePath();
+      c.fill();
+
+      break;
+    }
+  }
+
+  c.restore();
+}
 function vampire(c,p,t,portrait=false) {
   const dir=p.dir||1;
   const gait=p.pace?Math.sin(t*(p.pace>250?17:12)):0;
@@ -252,16 +385,79 @@ function vampire(c,p,t,portrait=false) {
   path(c,swing?'M15 -65L27 -57L43 -64L46 -58L28 -48L15 -55Z':'M16 -67L24 -63L26 -47L24 -37L17 -36L18 -48L13 -59Z','#44313e','#1c141e',1);
   const handX=swing?44:21,handY=swing?-60:-34;
   ellipse(c,handX,handY,4.4,5,'#c39487');
+  // Draw the currently equipped weapon
+if (!portrait) {
+  c.save();
+
+  c.translate(handX + 3, handY);
+
+  // Rotate the weapon during attacks
+  if (swing) {
+    c.rotate(Math.PI / 3);
+  } else {
+    c.rotate(Math.PI / 8);
+  }
+
+  drawWeapon(
+    c,
+    p.equippedWeapon || 'claws',
+    swing,
+    t
+  );
+
+  c.restore();
+}
   const ring=gradient(c,handX+1,handY,portrait?13:6,'#fff1bbba','#f19f4100');
   ellipse(c,handX+1,handY,portrait?13:6,portrait?13:6,ring);
   rect(c,handX,handY-1,3.8,2.2,'#d69a58');
   rect(c,handX+1,handY-1.6,2.3,2.3,'#ffe1a0');
   ellipse(c,-22,-34,3.5,4,'#ab8078');
   face(c);
-  if(swing) {
-    path(c,'M24 -83Q66 -76 68 -52Q52 -62 29 -65Q54 -64 60 -57Q47 -75 24 -83Z','#f1916498');
-    path(c,'M29 -81Q60 -74 68 -53',null,'#ffd3a2b4',1.2);
+ if (swing && !portrait) {
+
+  const effects = {
+    claws: '#ff3559',
+    dagger: '#d92445',
+    shadow: '#a45cff',
+    crimson: '#ff243e',
+    scythe: '#b96cff',
+    fang: '#ffd76e'
+  };
+
+  const weapon = p.equippedWeapon || 'claws';
+  const color = effects[weapon] || effects.claws;
+
+  c.save();
+
+  c.strokeStyle = color;
+  c.shadowColor = color;
+  c.shadowBlur = 22;
+  c.lineWidth = weapon === 'scythe' ? 6 : 3;
+
+  c.beginPath();
+
+  if (weapon === 'scythe') {
+    c.arc(35, -55, 58, -1.5, 0.9);
+  } else {
+    c.arc(35, -55, 42, -1.3, 0.6);
   }
+
+  c.stroke();
+
+  // Additional supernatural energy particles
+  if (!reducedMotion.matches) {
+    for (let i = 0; i < 6; i++) {
+      const angle = t * 4 + i * Math.PI / 3;
+
+      const x = 35 + Math.cos(angle) * 35;
+      const y = -55 + Math.sin(angle) * 25;
+
+      ellipse(c, x, y, 2.5, 2.5, color);
+    }
+  }
+
+  c.restore();
+}
   c.restore();
 }
 
@@ -291,6 +487,7 @@ function human(c,n,t) {
 }
 
 let cachedTheme;
+let cachedLocation;
 let town;
 function backdrop(c,w,camera,t,light) {
   rect(c,0,0,w,H,vertical(c,0,H,light?[[0,'#6a4b58'],[.52,'#c78769'],[1,'#dea17c']]:[[0,'#231929'],[.52,'#63404a'],[1,'#ba7759']]));
@@ -327,15 +524,56 @@ export function paint(canvas,view,playerId,light,t) {
   if(canvas.width!==Math.round(width*ratio)||canvas.height!==Math.round(height*ratio)){
     canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
   }
-  if(cachedTheme!==light){town=townLayer(light);cachedTheme=light;}
+  const location = view.location || 'streets';
+ if (window.lastDebugLocation !== location) {
+  console.log('ACTUAL GAME LOCATION:', location);
+  window.lastDebugLocation = location;
+}
+if (
+  cachedTheme !== light ||
+  cachedLocation !== location
+) {
+switch (location) {
+  case 'college':
+    town = collegeLayer();
+    break;
+
+  case 'cafe':
+    town = cafeLayer();
+    break;
+
+  case 'mall':
+    town = mallLayer();
+    break;
+
+  case 'streets':
+  default:
+    town = townLayer(light);
+    break;
+}
+
+  cachedTheme = light;
+  cachedLocation = location;
+}
   const c=canvas.getContext('2d');
   const zoom=height/H;
   const w=width/zoom;
   const focus=view.players.find(p=>p.id===playerId);
   const camera=Math.max(0,Math.min(WIDTH-w,(focus?.x||350)-w*.37));
   c.setTransform(ratio*zoom,0,0,ratio*zoom,0,0);
-  backdrop(c,w,camera,t,light);
-  c.drawImage(town,-camera,0);
+  if (location === 'college' || location === 'cafe' || location === 'mall') {
+  // These environments include their own backgrounds.
+  c.fillStyle =
+  location === 'college' ? '#100d1b' :
+  location === 'cafe' ? '#21131f' :
+  '#080b15';
+
+  c.fillRect(0, 0, w, H);
+} else {
+  backdrop(c, w, camera, t, light);
+}
+
+c.drawImage(town, -camera, 0);
   c.save();c.translate(-camera,0);
   for(const n of view.npcs) if(n.x>camera-80&&n.x<camera+w+80)human(c,n,t);
   for(const p of view.players) {
